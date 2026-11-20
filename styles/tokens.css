@@ -1,0 +1,71 @@
+/* ==========================================================================
+   [GONGU365] Design System Tokens
+   Extracted from Figma Design System (9Wi2H3VNLZEUj8TBfDNIfb)
+   ========================================================================== */
+
+:root {
+  /* Brand Colors */
+  --gu-primary: #c8ff32;
+  --gu-primary-hover: #b8f020;
+  --gu-primary-soft: #deff99;
+  --gu-secondary: #ff1494;
+  --gu-secondary-pink: #eb2f96;
+  --gu-secondary-soft: #fff0f6;
+
+  /* Neutral Colors */
+  --gu-black: #000000;
+  --gu-black-apple: #030f16;
+  --gu-ink: #17191b;
+  --gu-text-heading: rgba(0, 0, 0, 0.88);
+  --gu-text: rgba(0, 0, 0, 0.88);
+  --gu-text-secondary: #737373;
+  --gu-text-muted: #777777;
+  --gu-text-placeholder: rgba(0, 0, 0, 0.25);
+  --gu-text-disabled: rgba(0, 0, 0, 0.25);
+  --gu-icon: rgba(0, 0, 0, 0.45);
+
+  --gu-white: #ffffff;
+  --gu-bg-page: #f4f5f7;
+  --gu-bg-surface: #fafafa;
+  --gu-bg-subtle: #f5f5f5;
+  --gu-bg-disabled: rgba(0, 0, 0, 0.04);
+  --gu-border: #d9d9d9;
+  --gu-border-light: #e8e9eb;
+  --gu-split: rgba(0, 0, 0, 0.06);
+
+  /* Semantic Colors */
+  --gu-success: #52c41a;
+  --gu-success-bg: #f6ffed;
+  --gu-warning: #faad14;
+  --gu-warning-bg: #fffbe6;
+  --gu-error: #ff4d4f;
+  --gu-error-bg: #fff2f0;
+  --gu-ios-blue: #007aff;
+  --gu-kakao-yellow: #ffe500;
+
+  /* Typography */
+  --gu-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --gu-font-display: "Be Vietnam Pro", "Inter", sans-serif;
+
+  /* Radii */
+  --gu-radius-sm: 4px;
+  --gu-radius-md: 6px;
+  --gu-radius-lg: 8px;
+  --gu-radius-xl: 12px;
+  --gu-radius-2xl: 16px;
+  --gu-radius-pill: 9999px;
+
+  /* Spacing & Sizing */
+  --gu-control-h: 40px;
+  --gu-control-h-lg: 48px;
+  --gu-space-xs: 4px;
+  --gu-space-sm: 8px;
+  --gu-space-md: 16px;
+  --gu-space-lg: 24px;
+
+  /* Shadows */
+  --gu-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --gu-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --gu-shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.14);
+  --gu-focus-ring: 0 0 0 2px rgba(200, 255, 50, 0.45);
+}
