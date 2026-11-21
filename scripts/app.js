@@ -3,27 +3,25 @@
 // ==========================================================================
 
 const state = {
-  screen: "welcome", // 'welcome' | 'register' | 'register-terms' | 'phone-login' | 'otp-verify' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
+  screen: "welcome", // 'welcome' | 'phone-login' | 'otp-verify' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
   authModal: null, // null | { type: 'apple' | 'oauth', provider, domain }
   pendingAction: null, // null | { label, requireOtp: boolean }
   faceIdEnabled: true,
-  agreedTerms: true,
   phone: "0987 768 189",
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
-  emailCountdown: 30,
-  emailCodeSent: false,
   showPassword: false,
+  showConfirmPassword: false,
   toast: "",
   profile: {
     accountId: "nhungbui.gong365",
-    password: "••••••••",
     nickname: "Nhung Bùi",
+    password: "••••••••",
+    confirmPassword: "••••••••",
     day: "15",
     month: "08",
     year: "1998",
     email: "nhungbui@gmail.com",
-    emailOtp: "",
     country: "Việt Nam",
   },
   profileError: "",
@@ -174,9 +172,6 @@ function renderSocialButtons() {
       <button class="social-btn kakao" data-provider="Kakaotalk">
         ${ICONS.kakao} <span>Tiếp tục với Kakaotalk</span>
       </button>
-      <button class="social-btn facebook" data-provider="Facebook">
-        ${ICONS.facebook} <span>Tiếp tục với Facebook</span>
-      </button>
       <button class="social-btn zalo" data-provider="Zalo">
         ${ICONS.zalo} <span>Tiếp tục với Zalo</span>
       </button>
@@ -218,10 +213,6 @@ function render() {
           Khi tiếp tục, tôi đồng ý với <strong>Điều khoản Dịch vụ</strong> và <strong>Chính sách Quyền riêng tư</strong> của GongU365 theo Pháp luật Việt Nam.
         </p>
 
-        <div style="text-align:center;margin-top:12px;font-size:13px;color:rgba(255,255,255,0.7);">
-          Bạn chưa có tài khoản? <button id="goto-register" class="text-btn">Đăng ký</button>
-        </div>
-
         <div class="auth-spacer"></div>
 
         <div class="bottom-links">
@@ -236,75 +227,6 @@ function render() {
           <span class="faceid-label">${ICONS.faceId} Bật xác thực bằng Face ID ⓘ</span>
           <button id="toggle-faceid" class="gu-switch ${state.faceIdEnabled ? "on" : ""}" aria-label="Bật Face ID">
             <div class="gu-switch-knob"></div>
-          </button>
-        </div>
-      </div>`;
-  } else if (state.screen === "register") {
-    html += `
-      <div class="subscreen">
-        <div class="subscreen-nav">
-          <button class="back-btn" id="btn-back-welcome">${ICONS.back}</button>
-          <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.65);">Đăng ký tài khoản</span>
-          <span style="width:36px"></span>
-        </div>
-
-        <div class="auth-logo-row" style="margin-top:4px;">
-          <div class="auth-logo-mark">${ICONS.cartLogo}</div>
-          <div class="auth-logo-text">GongU365</div>
-        </div>
-        <p class="auth-tagline">
-          Tạo tài khoản mới để nhận đặc quyền <span class="pink">GongUser</span>
-        </p>
-
-        <div class="welcome-coupon-wrap">
-          <div class="welcome-coupon">
-            🎁 Tặng ngay <span class="coupon-pink">voucher giảm 20%</span><br/>
-            khi hoàn tất đăng ký tài khoản mới!
-          </div>
-          <div class="coupon-tail"></div>
-        </div>
-
-        <div class="form-stack" style="margin-bottom:4px;">
-          <div class="field-group">
-            <label class="field-label">Số điện thoại đăng ký</label>
-            <input id="reg-phone-input" class="gu-input" type="tel" placeholder="Nhập số điện thoại của bạn" value="${state.phone}" />
-          </div>
-          <button id="btn-reg-continue" class="gu-btn-primary">Tiếp tục đăng ký bằng SĐT</button>
-        </div>
-
-        <div class="or-divider">Hoặc đăng ký nhanh với</div>
-        ${renderSocialButtons()}
-
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:rgba(255,255,255,0.7);">
-          Bạn đã có tài khoản? <button id="btn-back-login-link" class="text-btn">Đăng nhập</button>
-        </div>
-      </div>`;
-  } else if (state.screen === "register-terms") {
-    html += `
-      <div class="subscreen">
-        <div class="subscreen-nav">
-          <button class="back-btn" id="btn-back-register">${ICONS.back}</button>
-          <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.65);">Bước 1/3 • Đăng ký</span>
-          <span style="width:36px"></span>
-        </div>
-
-        <h2 class="subscreen-title">Xác nhận số điện thoại đăng ký</h2>
-        <p class="subscreen-subtitle">
-          Hệ thống sẽ gửi mã OTP 6 chữ số đến số điện thoại <strong>${state.phone || "0987 768 189"}</strong> để tạo tài khoản GongUser mới.
-        </p>
-
-        <div class="form-stack">
-          <input id="reg-terms-phone" class="gu-input" type="tel" value="${state.phone}" placeholder="Số điện thoại" />
-
-          <div id="btn-toggle-terms" class="terms-check-row">
-            <div class="terms-check-box ${state.agreedTerms ? "checked" : ""}">
-              ${state.agreedTerms ? "✓" : ""}
-            </div>
-            <span>Tôi đồng ý với <strong>Điều khoản Dịch vụ</strong> &amp; <strong>Chính sách Quyền riêng tư</strong> của GongU365.</span>
-          </div>
-
-          <button id="btn-send-reg-otp" class="gu-btn-primary" ${!state.agreedTerms ? "disabled" : ""}>
-            Gửi mã OTP đăng ký
           </button>
         </div>
       </div>`;
@@ -391,6 +313,11 @@ function render() {
           </div>
 
           <div class="field-group">
+            <label class="field-label">Tên người dùng</label>
+            <input id="pf-nick" class="gu-input" value="${p.nickname}" placeholder="Nhập tên người dùng" />
+          </div>
+
+          <div class="field-group">
             <label class="field-label">Mật khẩu</label>
             <div class="input-with-action">
               <input id="pf-pass" class="gu-input" type="${state.showPassword ? "text" : "password"}" value="${p.password}" placeholder="Nhập mật khẩu" />
@@ -399,8 +326,11 @@ function render() {
           </div>
 
           <div class="field-group">
-            <label class="field-label">Biệt danh của bạn</label>
-            <input id="pf-nick" class="gu-input" value="${p.nickname}" placeholder="Nhập biệt danh" />
+            <label class="field-label">Xác nhận lại mật khẩu</label>
+            <div class="input-with-action">
+              <input id="pf-confirm-pass" class="gu-input" type="${state.showConfirmPassword ? "text" : "password"}" value="${p.confirmPassword}" placeholder="Nhập lại mật khẩu" />
+              <button class="input-inline-action" id="btn-toggle-confirm-pass">${state.showConfirmPassword ? "Ẩn" : "Hiện"}</button>
+            </div>
           </div>
 
           <div class="field-group">
@@ -414,20 +344,7 @@ function render() {
 
           <div class="field-group">
             <label class="field-label">Liên kết Email của bạn</label>
-            <div class="input-with-action">
-              <input id="pf-email" class="gu-input" type="email" value="${p.email}" placeholder="email@example.com" />
-              <button class="input-inline-action" id="btn-send-email-code">Gửi mã</button>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label">Xác nhận Email</label>
-            <div class="input-with-action">
-              <input id="pf-email-otp" class="gu-input" maxlength="6" value="${p.emailOtp}" placeholder="Nhập mã gồm 6 chữ số" />
-              <button class="input-inline-action" id="resend-email-btn" ${state.emailCodeSent && state.emailCountdown > 0 ? "disabled" : ""}>
-                ${state.emailCodeSent && state.emailCountdown > 0 ? `Gửi lại mã ${state.emailCountdown}s` : "Mã mẫu: 686868"}
-              </button>
-            </div>
+            <input id="pf-email" class="gu-input" type="email" value="${p.email}" placeholder="email@example.com" />
           </div>
 
           <div class="field-group">
@@ -596,18 +513,6 @@ function bindEvents() {
   qs("quick-phone-input")?.addEventListener("input", (e) => (state.phone = e.target.value));
   qs("quick-phone-submit")?.addEventListener("click", () => navigateTo("phone-login"));
 
-  qs("goto-register")?.addEventListener("click", () => navigateTo("register"));
-  qs("btn-back-login-link")?.addEventListener("click", () => navigateTo("welcome"));
-  qs("reg-phone-input")?.addEventListener("input", (e) => (state.phone = e.target.value));
-  qs("btn-reg-continue")?.addEventListener("click", () => navigateTo("register-terms"));
-  qs("btn-back-register")?.addEventListener("click", () => navigateTo("register"));
-  qs("reg-terms-phone")?.addEventListener("input", (e) => (state.phone = e.target.value));
-  qs("btn-toggle-terms")?.addEventListener("click", () => {
-    state.agreedTerms = !state.agreedTerms;
-    render();
-  });
-  qs("btn-send-reg-otp")?.addEventListener("click", () => navigateTo("otp-verify"));
-
   document.querySelectorAll(".social-btn[data-provider]").forEach((btn) => {
     btn.addEventListener("click", () => openSocialAuth(btn.dataset.provider));
   });
@@ -673,29 +578,29 @@ function bindEvents() {
     render();
   });
 
-  qs("btn-send-email-code")?.addEventListener("click", () => {
-    startEmailTimer();
-    render();
-  });
-
-  qs("resend-email-btn")?.addEventListener("click", () => {
-    state.profile.emailOtp = "686868";
+  qs("btn-toggle-confirm-pass")?.addEventListener("click", () => {
+    state.showConfirmPassword = !state.showConfirmPassword;
     render();
   });
 
   qs("pf-id")?.addEventListener("input", (e) => (state.profile.accountId = e.target.value));
-  qs("pf-pass")?.addEventListener("input", (e) => (state.profile.password = e.target.value));
   qs("pf-nick")?.addEventListener("input", (e) => (state.profile.nickname = e.target.value));
+  qs("pf-pass")?.addEventListener("input", (e) => (state.profile.password = e.target.value));
+  qs("pf-confirm-pass")?.addEventListener("input", (e) => (state.profile.confirmPassword = e.target.value));
   qs("pf-day")?.addEventListener("input", (e) => (state.profile.day = e.target.value));
   qs("pf-month")?.addEventListener("input", (e) => (state.profile.month = e.target.value));
   qs("pf-year")?.addEventListener("input", (e) => (state.profile.year = e.target.value));
   qs("pf-email")?.addEventListener("input", (e) => (state.profile.email = e.target.value));
-  qs("pf-email-otp")?.addEventListener("input", (e) => (state.profile.emailOtp = e.target.value));
   qs("pf-country")?.addEventListener("change", (e) => (state.profile.country = e.target.value));
 
   qs("btn-complete-setup")?.addEventListener("click", () => {
     if (!state.profile.nickname.trim() || !state.profile.email.trim()) {
-      state.profileError = "Vui lòng điền đầy đủ Biệt danh và Email liên kết.";
+      state.profileError = "Vui lòng điền đầy đủ Tên người dùng và Email liên kết.";
+      render();
+      return;
+    }
+    if (state.profile.password !== state.profile.confirmPassword) {
+      state.profileError = "Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.";
       render();
       return;
     }
