@@ -6,7 +6,6 @@ const state = {
   screen: "welcome", // 'welcome' | 'phone-login' | 'otp-verify' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
   authModal: null, // null | { type: 'apple' | 'oauth', provider, domain }
   pendingAction: null, // null | { label, requireOtp: boolean }
-  faceIdEnabled: true,
   phone: "0987 768 189",
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
@@ -221,13 +220,6 @@ function render() {
           <button class="bottom-link-btn" id="goto-forgot">Quên mật khẩu</button>
           <span class="bottom-link-sep">|</span>
           <button class="bottom-link-btn" id="goto-support">Trung tâm hỗ trợ</button>
-        </div>
-
-        <div class="faceid-bar">
-          <span class="faceid-label">${ICONS.faceId} Bật xác thực bằng Face ID ⓘ</span>
-          <button id="toggle-faceid" class="gu-switch ${state.faceIdEnabled ? "on" : ""}" aria-label="Bật Face ID">
-            <div class="gu-switch-knob"></div>
-          </button>
         </div>
       </div>`;
   } else if (state.screen === "phone-login") {
@@ -515,11 +507,6 @@ function bindEvents() {
 
   document.querySelectorAll(".social-btn[data-provider]").forEach((btn) => {
     btn.addEventListener("click", () => openSocialAuth(btn.dataset.provider));
-  });
-
-  qs("toggle-faceid")?.addEventListener("click", () => {
-    state.faceIdEnabled = !state.faceIdEnabled;
-    render();
   });
 
   qs("goto-email-login")?.addEventListener("click", () => navigateTo("email-login"));

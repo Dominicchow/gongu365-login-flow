@@ -326,7 +326,7 @@
           <rect x="280" y="168" width="185" height="80" rx="14" fill="#141414" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5"/>
           <text x="372" y="196" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="800">Màn Đăng nhập / Đăng ký</text>
           <text x="372" y="216" text-anchor="middle" fill="#a3a3a3" font-size="11">SĐT • Social • Email/ID</text>
-          <text x="372" y="233" text-anchor="middle" fill="#eb2f96" font-size="11" font-weight="600">Face ID • Quên mật khẩu</text>
+          <text x="372" y="233" text-anchor="middle" fill="#eb2f96" font-size="11" font-weight="600">Quên mật khẩu • Hỗ trợ</text>
 
           <!-- Arrows Triggers -> Auth -->
           <path d="M226 56 L252 56 L252 192 L274 192" fill="none" stroke="#eb2f96" stroke-width="1.8" marker-end="url(#arr-pink)"/>
@@ -560,14 +560,13 @@
 
       <article class="case-card" data-group="standard">
         <div class="case-head">
-          <h3>Case 4 &amp; 5: Email/ID, Quên mật khẩu &amp; Face ID</h3>
-          <span class="badge blue">Standard • Credentials &amp; Biometric</span>
+          <h3>Case 4: Email/ID &amp; Quên mật khẩu</h3>
+          <span class="badge blue">Standard • Credentials</span>
         </div>
         <div class="case-body">
           <ul>
             <li><strong>Email / ID:</strong> Kiểm tra mật khẩu hash (bcrypt/argon2). Sai quá 5 lần → yêu cầu xác minh OTP SĐT hoặc chờ 15 phút.</li>
             <li><strong>Quên mật khẩu:</strong> Nhập Email hoặc SĐT đã liên kết → gửi mã OTP 6 số khôi phục → đặt mật khẩu mới → thu hồi toàn bộ <code>refresh_token</code> cũ.</li>
-            <li><strong>Face ID:</strong> Khi bật switch <em>Bật xác thực bằng Face ID</em>, app lưu <code>biometric_token</code> vào iOS Keychain / Android Keystore (có bảo vệ Secure Enclave). Lần mở app sau chỉ cần quét Face ID để đổi lấy <code>access_token</code> mới mà không cần nhập lại OTP.</li>
           </ul>
         </div>
       </article>
