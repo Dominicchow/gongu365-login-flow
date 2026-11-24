@@ -18,6 +18,9 @@ const state = {
   showPassword: false,
   showConfirmPassword: false,
   showEmailPassword: false,
+  showPhonePassword: false,
+  loginPassword: "",
+  loginPasswordError: "",
   countryOpen: false,
   toast: "",
   profile: {
@@ -309,6 +312,43 @@ function render() {
         <div class="auth-spacer"></div>
         <div style="text-align:center;margin-top:16px;">
           <button class="text-btn" id="btn-other-method" style="color:rgba(255,255,255,0.65);">Sử dụng phương thức khác</button>
+        </div>
+      </div>`;
+  } else if (state.screen === "phone-password") {
+    html += `
+      <div class="subscreen">
+        <div class="subscreen-nav">
+          <button class="back-btn" id="btn-back-welcome">${ICONS.back}</button>
+          <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.65);">Đăng nhập</span>
+          <span style="width:36px"></span>
+        </div>
+
+        <h2 class="subscreen-title">Nhập mật khẩu</h2>
+        <p class="subscreen-subtitle">
+          Số điện thoại <strong>${state.phone}</strong> đã có tài khoản GongU365. Vui lòng nhập mật khẩu để đăng nhập.
+        </p>
+
+        <div class="form-stack">
+          <div class="field-group">
+            <label class="field-label">Mật khẩu</label>
+            <div class="input-with-action">
+              <input id="phone-pass-input" class="gu-input ${state.loginPasswordError ? "error" : ""}" type="${state.showPhonePassword ? "text" : "password"}" placeholder="Nhập mật khẩu (mẫu: GongU@2026)" value="${state.loginPassword}" />
+              <button type="button" class="input-inline-action" id="btn-toggle-phone-pass">${state.showPhonePassword ? "Ẩn" : "Hiện"}</button>
+            </div>
+            ${state.loginPasswordError ? `<div class="field-error">${state.loginPasswordError}</div>` : ""}
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <button type="button" id="btn-fill-sample-pass" class="text-btn" style="color:#c8ff32;">Điền mật khẩu mẫu</button>
+            <button type="button" id="goto-forgot-from-phone" class="text-btn">Quên mật khẩu?</button>
+          </div>
+
+          <button id="btn-phone-pass-submit" class="gu-btn-primary">Đăng nhập</button>
+        </div>
+
+        <div class="auth-spacer"></div>
+        <div style="text-align:center;margin-top:16px;">
+          <button type="button" class="text-btn" id="btn-switch-to-otp" style="color:rgba(255,255,255,0.65);">Đăng nhập bằng mã OTP</button>
         </div>
       </div>`;
   } else if (state.screen === "otp-verify") {
@@ -630,6 +670,12 @@ function bindEvents() {
     }
     state.phoneError = "";
     state.termsError = "";
+    if (isExistingPhone(state.phone)) {
+      state.loginPassword = "";
+      state.loginPasswordError = "";
+      navigateTo("phone-password");
+      return;
+    }
     navigateTo("phone-login");
   });
 
@@ -648,6 +694,50 @@ function bindEvents() {
   qs("btn-toggle-email-pass")?.addEventListener("click", () => {
     state.showEmailPassword = !state.showEmailPassword;
     render();
+  });
+
+  qs("phone-pass-input")?.addEventListener("input", (e) => {
+    state.loginPassword = e.target.value;
+    if (state.loginPasswordError) {
+      state.loginPasswordError = "";
+      render();
+      qs("phone-pass-input")?.focus();
+    }
+  });
+
+  qs("btn-toggle-phone-pass")?.addEventListener("click", () => {
+    state.showPhonePassword = !state.showPhonePassword;
+    render();
+  });
+
+  qs("btn-fill-sample-pass")?.addEventListener("click", () => {
+    state.loginPassword = state.profile.password;
+    state.loginPasswordError = "";
+    render();
+  });
+
+  qs("goto-forgot-from-phone")?.addEventListener("click", () => navigateTo("support"));
+  qs("btn-switch-to-otp")?.addEventListener("click", () => navigateTo("phone-login"));
+
+  qs("btn-phone-pass-submit")?.addEventListener("click", () => {
+    if (!state.loginPassword.trim()) {
+      state.loginPasswordError = "Vui lòng nhập mật khẩu.";
+      render();
+      return;
+    }
+    if (state.loginPassword !== state.profile.password) {
+      state.loginPasswordError = `Mật khẩu không đúng (mật khẩu mẫu: ${state.profile.password}).`;
+      render();
+      return;
+    }
+    state.loginPasswordError = "";
+    state.session.loggedIn = true;
+    state.session.phoneVerified = true;
+    state.session.emailVerified = true;
+    state.session.voucherClaimed = false;
+    state.session.provider = "SĐT + Mật khẩu";
+    showToast("👋 Chào mừng quay trở lại, Nhung Bùi!");
+    navigateTo("home");
   });
 
   qs("goto-email-login")?.addEventListener("click", () => navigateTo("email-login"));
