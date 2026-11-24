@@ -12,6 +12,9 @@ const state = {
   phoneError: "",
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
+  otpAttempts: 0,
+  otpError: "",
+  otpLockSeconds: 0,
   showPassword: false,
   showConfirmPassword: false,
   showEmailPassword: false,
@@ -59,8 +62,32 @@ function validateEmailFormat(raw) {
 }
 
 let otpTimerHandle = null;
+let otpLockTimerHandle = null;
 let emailTimerHandle = null;
 let toastTimerHandle = null;
+
+function startOtpLockTimer() {
+  clearInterval(otpLockTimerHandle);
+  state.otpLockSeconds = 30;
+  otpLockTimerHandle = setInterval(() => {
+    if (state.otpLockSeconds > 1) {
+      state.otpLockSeconds -= 1;
+      const msg = document.getElementById("otp-lock-msg");
+      if (msg) {
+        msg.textContent = `Bạn đã nhập sai OTP 3 lần. Vui lòng chờ ${state.otpLockSeconds}s để thử lại.`;
+      }
+      const btn = document.getElementById("btn-verify-otp");
+      if (btn) btn.textContent = `Vui lòng chờ ${state.otpLockSeconds}s`;
+    } else {
+      clearInterval(otpLockTimerHandle);
+      state.otpLockSeconds = 0;
+      state.otpAttempts = 0;
+      state.otpError = "";
+      state.otpDigits = ["", "", "", "", "", ""];
+      render();
+    }
+  }, 1000);
+}
 
 const ICONS = {
   cartLogo: `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="17" cy="20" r="1.5"/><path d="M3 4h2l2.4 10.5a1 1 0 0 0 1 .8h9.8a1 1 0 0 0 1-.8L21 7H6.2"/></svg>`,
@@ -302,20 +329,28 @@ function render() {
           ${state.otpDigits
             .map(
               (d, i) =>
-                `<input class="otp-cell" maxlength="1" inputmode="numeric" data-otp-idx="${i}" value="${d}" />`
+                `<input class="otp-cell" maxlength="1" inputmode="numeric" data-otp-idx="${i}" value="${d}" ${state.otpLockSeconds > 0 ? "disabled" : ""} />`
             )
             .join("")}
         </div>
 
+        ${
+          state.otpLockSeconds > 0
+            ? `<div id="otp-lock-msg" class="field-error" style="margin-bottom:12px;">Bạn đã nhập sai OTP 3 lần. Vui lòng chờ ${state.otpLockSeconds}s để thử lại.</div>`
+            : state.otpError
+            ? `<div class="field-error" style="margin-bottom:12px;">${state.otpError}</div>`
+            : ""
+        }
+
         <div class="otp-helper-row">
-          <button class="text-btn" id="btn-autofill-otp">Điền nhanh mã mẫu (123456)</button>
-          <button class="text-btn" id="resend-otp-btn" ${state.otpCountdown > 0 ? "disabled" : ""}>
+          <button type="button" class="text-btn" id="btn-autofill-otp" ${state.otpLockSeconds > 0 ? "disabled" : ""}>Điền nhanh mã mẫu (123456)</button>
+          <button type="button" class="text-btn" id="resend-otp-btn" ${state.otpCountdown > 0 || state.otpLockSeconds > 0 ? "disabled" : ""}>
             ${state.otpCountdown > 0 ? `Gửi lại mã ${state.otpCountdown}s` : "Gửi lại mã"}
           </button>
         </div>
 
-        <button id="btn-verify-otp" class="gu-btn-primary" ${state.otpDigits.join("").length < 6 ? "disabled" : ""}>
-          Xác minh OTP
+        <button id="btn-verify-otp" class="gu-btn-primary" ${state.otpLockSeconds > 0 || state.otpDigits.join("").length < 6 ? "disabled" : ""}>
+          ${state.otpLockSeconds > 0 ? `Vui lòng chờ ${state.otpLockSeconds}s` : "Xác minh OTP"}
         </button>
       </div>`;
   } else if (state.screen === "profile-setup") {
@@ -672,6 +707,26 @@ function bindEvents() {
   });
 
   qs("btn-verify-otp")?.addEventListener("click", () => {
+    if (state.otpLockSeconds > 0) return;
+
+    const entered = state.otpDigits.join("");
+    if (entered !== "123456") {
+      state.otpAttempts += 1;
+      if (state.otpAttempts >= 3) {
+        state.otpError = "";
+        startOtpLockTimer();
+        render();
+        return;
+      }
+      const left = 3 - state.otpAttempts;
+      state.otpError = `Mã OTP không đúng. Bạn còn ${left} lần thử (mã mẫu: 123456).`;
+      state.otpDigits = ["", "", "", "", "", ""];
+      render();
+      return;
+    }
+
+    state.otpAttempts = 0;
+    state.otpError = "";
     state.session.loggedIn = true;
     state.session.phoneVerified = true;
     state.session.provider = state.session.provider || "OTP SĐT";
