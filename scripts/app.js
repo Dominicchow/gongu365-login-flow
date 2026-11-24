@@ -218,7 +218,7 @@ function render() {
         <div class="quick-phone-box">
           <input id="quick-phone-input" class="gu-input ${state.phoneError ? "error" : ""}" type="tel" placeholder="Nhập số điện thoại" value="${state.phone}" />
           ${state.phoneError ? `<div class="field-error">${state.phoneError}</div>` : ""}
-          <button id="quick-phone-submit" class="gu-btn-primary">Đăng nhập</button>
+          <button id="quick-phone-submit" class="gu-btn-primary">Đăng nhập/Đăng ký</button>
         </div>
 
         <div class="or-divider">Hoặc</div>
