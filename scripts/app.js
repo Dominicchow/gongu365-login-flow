@@ -6,23 +6,28 @@ const state = {
   screen: "welcome", // 'welcome' | 'phone-login' | 'otp-verify' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
   authModal: null, // null | { type: 'apple' | 'oauth', provider, domain }
   pendingAction: null, // null | { label, requireOtp: boolean }
+  agreedTerms: true,
+  termsError: "",
   phone: "0987 768 189",
+  phoneError: "",
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
   showPassword: false,
   showConfirmPassword: false,
+  showEmailPassword: false,
   toast: "",
   profile: {
     accountId: "nhungbui.gong365",
     nickname: "Nhung Bùi",
-    password: "••••••••",
-    confirmPassword: "••••••••",
+    password: "GongU@2026",
+    confirmPassword: "GongU@2026",
     day: "15",
     month: "08",
     year: "1998",
     email: "nhungbui@gmail.com",
     country: "Việt Nam",
   },
+  fieldErrors: {},
   profileError: "",
   session: {
     loggedIn: false,
@@ -32,6 +37,15 @@ const state = {
     voucherClaimed: false,
   },
 };
+
+function validatePhoneFormat(raw) {
+  const cleaned = String(raw || "").replace(/[\s.-]/g, "");
+  return /^(0|\+84)(3|5|7|8|9)\d{8}$/.test(cleaned);
+}
+
+function validateEmailFormat(raw) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(raw || "").trim());
+}
 
 let otpTimerHandle = null;
 let emailTimerHandle = null;
@@ -201,16 +215,21 @@ function render() {
         </div>
 
         <div class="quick-phone-box">
-          <input id="quick-phone-input" class="gu-input" type="tel" placeholder="Nhập số điện thoại" value="${state.phone}" />
+          <input id="quick-phone-input" class="gu-input ${state.phoneError ? "error" : ""}" type="tel" placeholder="Nhập số điện thoại" value="${state.phone}" />
+          ${state.phoneError ? `<div class="field-error">${state.phoneError}</div>` : ""}
           <button id="quick-phone-submit" class="gu-btn-primary">Đăng nhập</button>
         </div>
 
         <div class="or-divider">Hoặc</div>
         ${renderSocialButtons()}
 
-        <p class="terms-text">
-          Khi tiếp tục, tôi đồng ý với <strong>Điều khoản Dịch vụ</strong> và <strong>Chính sách Quyền riêng tư</strong> của GongU365 theo Pháp luật Việt Nam.
-        </p>
+        <div id="btn-toggle-terms" class="terms-check-row" style="margin-top:14px;">
+          <div class="terms-check-box ${state.agreedTerms ? "checked" : ""}">
+            ${state.agreedTerms ? "✓" : ""}
+          </div>
+          <span>Bằng việc bấm đăng nhập, bạn đã đồng ý với <strong>điều khoản điều kiện</strong> của GongU365.</span>
+        </div>
+        ${state.termsError ? `<div class="field-error" style="margin-top:6px;">${state.termsError}</div>` : ""}
 
         <div class="auth-spacer"></div>
 
@@ -239,7 +258,8 @@ function render() {
         <div class="form-stack">
           <div class="field-group">
             <label class="field-label">Số điện thoại</label>
-            <input id="phone-input" class="gu-input" type="tel" placeholder="VD: 0987 768 189" value="${state.phone}" />
+            <input id="phone-input" class="gu-input ${state.phoneError ? "error" : ""}" type="tel" placeholder="VD: 0987 768 189" value="${state.phone}" />
+            ${state.phoneError ? `<div class="field-error">${state.phoneError}</div>` : ""}
           </div>
           <button id="btn-send-otp" class="gu-btn-primary">Gửi mã</button>
         </div>
@@ -306,23 +326,26 @@ function render() {
 
           <div class="field-group">
             <label class="field-label">Tên người dùng</label>
-            <input id="pf-nick" class="gu-input" value="${p.nickname}" placeholder="Nhập tên người dùng" />
+            <input id="pf-nick" class="gu-input ${state.fieldErrors.nickname ? "error" : ""}" value="${p.nickname}" placeholder="Nhập tên người dùng" />
+            ${state.fieldErrors.nickname ? `<div class="field-error">${state.fieldErrors.nickname}</div>` : ""}
           </div>
 
           <div class="field-group">
             <label class="field-label">Mật khẩu</label>
             <div class="input-with-action">
-              <input id="pf-pass" class="gu-input" type="${state.showPassword ? "text" : "password"}" value="${p.password}" placeholder="Nhập mật khẩu" />
-              <button class="input-inline-action" id="btn-toggle-pass">${state.showPassword ? "Ẩn" : "Hiện"}</button>
+              <input id="pf-pass" class="gu-input ${state.fieldErrors.password ? "error" : ""}" type="${state.showPassword ? "text" : "password"}" value="${p.password}" placeholder="Nhập mật khẩu" />
+              <button type="button" class="input-inline-action" id="btn-toggle-pass">${state.showPassword ? "Ẩn" : "Hiện"}</button>
             </div>
+            ${state.fieldErrors.password ? `<div class="field-error">${state.fieldErrors.password}</div>` : ""}
           </div>
 
           <div class="field-group">
             <label class="field-label">Xác nhận lại mật khẩu</label>
             <div class="input-with-action">
-              <input id="pf-confirm-pass" class="gu-input" type="${state.showConfirmPassword ? "text" : "password"}" value="${p.confirmPassword}" placeholder="Nhập lại mật khẩu" />
-              <button class="input-inline-action" id="btn-toggle-confirm-pass">${state.showConfirmPassword ? "Ẩn" : "Hiện"}</button>
+              <input id="pf-confirm-pass" class="gu-input ${state.fieldErrors.confirmPassword ? "error" : ""}" type="${state.showConfirmPassword ? "text" : "password"}" value="${p.confirmPassword}" placeholder="Nhập lại mật khẩu" />
+              <button type="button" class="input-inline-action" id="btn-toggle-confirm-pass">${state.showConfirmPassword ? "Ẩn" : "Hiện"}</button>
             </div>
+            ${state.fieldErrors.confirmPassword ? `<div class="field-error">${state.fieldErrors.confirmPassword}</div>` : ""}
           </div>
 
           <div class="field-group">
@@ -336,19 +359,25 @@ function render() {
 
           <div class="field-group">
             <label class="field-label">Liên kết Email của bạn</label>
-            <input id="pf-email" class="gu-input" type="email" value="${p.email}" placeholder="email@example.com" />
+            <input id="pf-email" class="gu-input ${state.fieldErrors.email ? "error" : ""}" type="email" value="${p.email}" placeholder="email@example.com" />
+            ${state.fieldErrors.email ? `<div class="field-error">${state.fieldErrors.email}</div>` : ""}
           </div>
 
           <div class="field-group">
-            <label class="field-label">Khu vực tài khoản của bạn</label>
-            <select id="pf-country" class="gu-input">
-              ${["Việt Nam", "Hàn Quốc", "Nhật Bản", "Singapore", "Hoa Kỳ"]
-                .map(
-                  (c) =>
-                    `<option value="${c}" ${p.country === c ? "selected" : ""}>${c}</option>`
-                )
-                .join("")}
-            </select>
+            <label class="field-label">Khu vực sinh sống</label>
+            <div class="gu-select-wrap">
+              <select id="pf-country" class="gu-input gu-select">
+                ${["Việt Nam", "Hàn Quốc", "Nhật Bản", "Singapore", "Hoa Kỳ"]
+                  .map(
+                    (c) =>
+                      `<option value="${c}" ${p.country === c ? "selected" : ""}>${c}</option>`
+                  )
+                  .join("")}
+              </select>
+              <span class="gu-select-chevron" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </span>
+            </div>
           </div>
 
           ${state.profileError ? `<div class="field-error">${state.profileError}</div>` : ""}
@@ -427,7 +456,10 @@ function render() {
           </div>
           <div class="field-group">
             <label class="field-label">Mật khẩu</label>
-            <input class="gu-input" type="password" placeholder="Mật khẩu" value="12345678" />
+            <div class="input-with-action">
+              <input id="email-login-pass" class="gu-input" type="${state.showEmailPassword ? "text" : "password"}" placeholder="Mật khẩu" value="${state.profile.password}" />
+              <button type="button" class="input-inline-action" id="btn-toggle-email-pass">${state.showEmailPassword ? "Ẩn" : "Hiện"}</button>
+            </div>
           </div>
           <div style="text-align:right;">
             <button id="goto-forgot-from-email" class="text-btn">Quên mật khẩu?</button>
@@ -502,11 +534,52 @@ function render() {
 function bindEvents() {
   const qs = (id) => document.getElementById(id);
 
-  qs("quick-phone-input")?.addEventListener("input", (e) => (state.phone = e.target.value));
-  qs("quick-phone-submit")?.addEventListener("click", () => navigateTo("phone-login"));
+  qs("quick-phone-input")?.addEventListener("input", (e) => {
+    state.phone = e.target.value;
+    if (state.phoneError) {
+      state.phoneError = "";
+      render();
+      qs("quick-phone-input")?.focus();
+    }
+  });
+
+  qs("btn-toggle-terms")?.addEventListener("click", () => {
+    state.agreedTerms = !state.agreedTerms;
+    if (state.agreedTerms) state.termsError = "";
+    render();
+  });
+
+  qs("quick-phone-submit")?.addEventListener("click", () => {
+    if (!state.agreedTerms) {
+      state.termsError = "Vui lòng đồng ý với điều khoản điều kiện của GongU365.";
+      render();
+      return;
+    }
+    if (!validatePhoneFormat(state.phone)) {
+      state.phoneError = "Số điện thoại không đúng định dạng (gồm 10 số, VD: 0987 768 189).";
+      render();
+      return;
+    }
+    state.phoneError = "";
+    state.termsError = "";
+    navigateTo("phone-login");
+  });
 
   document.querySelectorAll(".social-btn[data-provider]").forEach((btn) => {
-    btn.addEventListener("click", () => openSocialAuth(btn.dataset.provider));
+    btn.addEventListener("click", () => {
+      if (!state.agreedTerms) {
+        state.termsError = "Vui lòng đồng ý với điều khoản điều kiện của GongU365.";
+        render();
+        return;
+      }
+      state.termsError = "";
+      openSocialAuth(btn.dataset.provider);
+    });
+  });
+
+  qs("btn-toggle-email-pass")?.addEventListener("click", () => {
+    state.showEmailPassword = !state.showEmailPassword;
+    render();
   });
 
   qs("goto-email-login")?.addEventListener("click", () => navigateTo("email-login"));
@@ -523,9 +596,21 @@ function bindEvents() {
   qs("btn-back-phone")?.addEventListener("click", () => navigateTo("phone-login"));
   qs("btn-back-otp")?.addEventListener("click", () => navigateTo("otp-verify"));
 
-  qs("phone-input")?.addEventListener("input", (e) => (state.phone = e.target.value));
+  qs("phone-input")?.addEventListener("input", (e) => {
+    state.phone = e.target.value;
+    if (state.phoneError) {
+      state.phoneError = "";
+      render();
+      qs("phone-input")?.focus();
+    }
+  });
   qs("btn-send-otp")?.addEventListener("click", () => {
-    if (!state.phone.trim()) state.phone = "0987 768 189";
+    if (!validatePhoneFormat(state.phone)) {
+      state.phoneError = "Số điện thoại không đúng định dạng (gồm 10 số, VD: 0987 768 189).";
+      render();
+      return;
+    }
+    state.phoneError = "";
     navigateTo("otp-verify");
   });
 
@@ -581,13 +666,22 @@ function bindEvents() {
   qs("pf-country")?.addEventListener("change", (e) => (state.profile.country = e.target.value));
 
   qs("btn-complete-setup")?.addEventListener("click", () => {
-    if (!state.profile.nickname.trim() || !state.profile.email.trim()) {
-      state.profileError = "Vui lòng điền đầy đủ Tên người dùng và Email liên kết.";
-      render();
-      return;
+    const errs = {};
+    if (!state.profile.nickname.trim()) {
+      errs.nickname = "Vui lòng nhập Tên người dùng.";
+    }
+    if (state.profile.password.length < 6) {
+      errs.password = "Mật khẩu phải có ít nhất 6 ký tự.";
     }
     if (state.profile.password !== state.profile.confirmPassword) {
-      state.profileError = "Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.";
+      errs.confirmPassword = "Mật khẩu xác nhận không khớp.";
+    }
+    if (!validateEmailFormat(state.profile.email)) {
+      errs.email = "Email không đúng định dạng (VD: ten@domain.com).";
+    }
+    state.fieldErrors = errs;
+    if (Object.keys(errs).length > 0) {
+      state.profileError = "Vui lòng kiểm tra lại các trường báo đỏ ở trên.";
       render();
       return;
     }
