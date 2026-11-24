@@ -15,6 +15,7 @@ const state = {
   showPassword: false,
   showConfirmPassword: false,
   showEmailPassword: false,
+  countryOpen: false,
   toast: "",
   profile: {
     accountId: "nhungbui.gong365",
@@ -366,17 +367,27 @@ function render() {
           <div class="field-group">
             <label class="field-label">Khu vực sinh sống</label>
             <div class="gu-select-wrap">
-              <select id="pf-country" class="gu-input gu-select">
-                ${["Việt Nam", "Hàn Quốc", "Nhật Bản", "Singapore", "Hoa Kỳ"]
-                  .map(
-                    (c) =>
-                      `<option value="${c}" ${p.country === c ? "selected" : ""}>${c}</option>`
-                  )
-                  .join("")}
-              </select>
-              <span class="gu-select-chevron" aria-hidden="true">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-              </span>
+              <button type="button" id="pf-country-btn" class="gu-input gu-select-btn" aria-expanded="${state.countryOpen}">
+                <span>${p.country}</span>
+                <span class="gu-select-chevron ${state.countryOpen ? "open" : ""}" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                </span>
+              </button>
+              ${
+                state.countryOpen
+                  ? `<div class="gu-select-menu" role="listbox">
+                      ${["Việt Nam", "Hàn Quốc", "Nhật Bản", "Singapore", "Hoa Kỳ"]
+                        .map(
+                          (c) =>
+                            `<button type="button" class="gu-select-option ${p.country === c ? "selected" : ""}" data-country="${c}">
+                              <span>${c}</span>
+                              ${p.country === c ? `<span>✓</span>` : ""}
+                            </button>`
+                        )
+                        .join("")}
+                    </div>`
+                  : ""
+              }
             </div>
           </div>
 
@@ -663,7 +674,17 @@ function bindEvents() {
   qs("pf-month")?.addEventListener("input", (e) => (state.profile.month = e.target.value));
   qs("pf-year")?.addEventListener("input", (e) => (state.profile.year = e.target.value));
   qs("pf-email")?.addEventListener("input", (e) => (state.profile.email = e.target.value));
-  qs("pf-country")?.addEventListener("change", (e) => (state.profile.country = e.target.value));
+  qs("pf-country-btn")?.addEventListener("click", () => {
+    state.countryOpen = !state.countryOpen;
+    render();
+  });
+  document.querySelectorAll(".gu-select-option[data-country]").forEach((opt) => {
+    opt.addEventListener("click", () => {
+      state.profile.country = opt.dataset.country;
+      state.countryOpen = false;
+      render();
+    });
+  });
 
   qs("btn-complete-setup")?.addEventListener("click", () => {
     const errs = {};

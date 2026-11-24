@@ -218,24 +218,60 @@ select {
 
 .gu-select-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.gu-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 38px;
+.gu-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
   cursor: pointer;
 }
 
 .gu-select-chevron {
-  position: absolute;
-  right: 14px;
-  pointer-events: none;
   color: rgba(255, 255, 255, 0.65);
   display: grid;
   place-items: center;
+  transition: transform 0.15s ease;
+}
+
+.gu-select-chevron.open {
+  transform: rotate(180deg);
+}
+
+.gu-select-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 6px);
+  background: #1c1c1e;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--gu-radius-lg);
+  padding: 4px;
+  z-index: 40;
+  box-shadow: var(--gu-shadow-lg);
+}
+
+.gu-select-option {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--gu-white);
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.gu-select-option:hover,
+.gu-select-option.selected {
+  background: rgba(200, 255, 50, 0.14);
+  color: var(--gu-primary);
+  font-weight: 600;
 }
 
 .gu-btn-primary {
