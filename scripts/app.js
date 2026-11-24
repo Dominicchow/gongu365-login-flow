@@ -8,7 +8,7 @@ const state = {
   pendingAction: null, // null | { label, requireOtp: boolean }
   agreedTerms: true,
   termsError: "",
-  phone: "0987 768 189",
+  phone: "",
   phoneError: "",
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
@@ -257,10 +257,6 @@ function render() {
 
         <div class="quick-phone-box">
           <input id="quick-phone-input" class="gu-input ${state.phoneError ? "error" : ""}" type="tel" placeholder="Nhập số điện thoại" value="${state.phone}" />
-          <div style="display:flex;gap:8px;justify-content:space-between;font-size:11.5px;color:rgba(255,255,255,0.6);">
-            <button type="button" class="text-btn fill-phone-btn" data-phone="0987 768 189" style="font-size:11.5px;color:#c8ff32;">Chưa có TK: 0987 768 189</button>
-            <button type="button" class="text-btn fill-phone-btn" data-phone="0912 345 678" style="font-size:11.5px;color:#69b1ff;">Đã có TK: 0912 345 678</button>
-          </div>
           ${state.phoneError ? `<div class="field-error">${state.phoneError}</div>` : ""}
           <button id="quick-phone-submit" class="gu-btn-primary">Đăng nhập/Đăng ký</button>
         </div>
@@ -332,14 +328,13 @@ function render() {
           <div class="field-group">
             <label class="field-label">Mật khẩu</label>
             <div class="input-with-action">
-              <input id="phone-pass-input" class="gu-input ${state.loginPasswordError ? "error" : ""}" type="${state.showPhonePassword ? "text" : "password"}" placeholder="Nhập mật khẩu (mẫu: GongU@2026)" value="${state.loginPassword}" />
+              <input id="phone-pass-input" class="gu-input ${state.loginPasswordError ? "error" : ""}" type="${state.showPhonePassword ? "text" : "password"}" placeholder="Nhập mật khẩu" value="${state.loginPassword}" />
               <button type="button" class="input-inline-action" id="btn-toggle-phone-pass">${state.showPhonePassword ? "Ẩn" : "Hiện"}</button>
             </div>
             ${state.loginPasswordError ? `<div class="field-error">${state.loginPasswordError}</div>` : ""}
           </div>
 
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <button type="button" id="btn-fill-sample-pass" class="text-btn" style="color:#c8ff32;">Điền mật khẩu mẫu</button>
+          <div style="text-align:right;">
             <button type="button" id="goto-forgot-from-phone" class="text-btn">Quên mật khẩu?</button>
           </div>
 
@@ -382,8 +377,7 @@ function render() {
             : ""
         }
 
-        <div class="otp-helper-row">
-          <button type="button" class="text-btn" id="btn-autofill-otp" ${state.otpLockSeconds > 0 ? "disabled" : ""}>Điền nhanh mã mẫu (123456)</button>
+        <div class="otp-helper-row" style="justify-content:flex-end;">
           <button type="button" class="text-btn" id="resend-otp-btn" ${state.otpCountdown > 0 || state.otpLockSeconds > 0 ? "disabled" : ""}>
             ${state.otpCountdown > 0 ? `Gửi lại mã ${state.otpCountdown}s` : "Gửi lại mã"}
           </button>
@@ -726,7 +720,7 @@ function bindEvents() {
       return;
     }
     if (state.loginPassword !== state.profile.password) {
-      state.loginPasswordError = `Mật khẩu không đúng (mật khẩu mẫu: ${state.profile.password}).`;
+      state.loginPasswordError = "Mật khẩu không đúng. Vui lòng kiểm tra lại.";
       render();
       return;
     }
@@ -809,7 +803,7 @@ function bindEvents() {
         return;
       }
       const left = 3 - state.otpAttempts;
-      state.otpError = `Mã OTP không đúng. Bạn còn ${left} lần thử (mã mẫu: 123456).`;
+      state.otpError = `Mã OTP không đúng. Bạn còn ${left} lần thử.`;
       state.otpDigits = ["", "", "", "", "", ""];
       render();
       return;
