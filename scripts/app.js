@@ -39,6 +39,16 @@ const state = {
   },
 };
 
+const EXISTING_TEST_PHONES = ["0912345678"];
+
+function normalizePhone(raw) {
+  return String(raw || "").replace(/[\s.-]/g, "").replace(/^\+84/, "0");
+}
+
+function isExistingPhone(raw) {
+  return EXISTING_TEST_PHONES.includes(normalizePhone(raw));
+}
+
 function validatePhoneFormat(raw) {
   const cleaned = String(raw || "").replace(/[\s.-]/g, "");
   return /^(0|\+84)(3|5|7|8|9)\d{8}$/.test(cleaned);
@@ -217,6 +227,10 @@ function render() {
 
         <div class="quick-phone-box">
           <input id="quick-phone-input" class="gu-input ${state.phoneError ? "error" : ""}" type="tel" placeholder="Nhập số điện thoại" value="${state.phone}" />
+          <div style="display:flex;gap:8px;justify-content:space-between;font-size:11.5px;color:rgba(255,255,255,0.6);">
+            <button type="button" class="text-btn fill-phone-btn" data-phone="0987 768 189" style="font-size:11.5px;color:#c8ff32;">Chưa có TK: 0987 768 189</button>
+            <button type="button" class="text-btn fill-phone-btn" data-phone="0912 345 678" style="font-size:11.5px;color:#69b1ff;">Đã có TK: 0912 345 678</button>
+          </div>
           ${state.phoneError ? `<div class="field-error">${state.phoneError}</div>` : ""}
           <button id="quick-phone-submit" class="gu-btn-primary">Đăng nhập/Đăng ký</button>
         </div>
@@ -554,6 +568,14 @@ function bindEvents() {
     }
   });
 
+  document.querySelectorAll(".fill-phone-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.phone = btn.dataset.phone;
+      state.phoneError = "";
+      render();
+    });
+  });
+
   qs("btn-toggle-terms")?.addEventListener("click", () => {
     state.agreedTerms = !state.agreedTerms;
     if (state.agreedTerms) state.termsError = "";
@@ -653,6 +675,15 @@ function bindEvents() {
     state.session.loggedIn = true;
     state.session.phoneVerified = true;
     state.session.provider = state.session.provider || "OTP SĐT";
+
+    if (isExistingPhone(state.phone)) {
+      state.session.emailVerified = true;
+      state.session.voucherClaimed = false;
+      showToast("👋 Chào mừng quay trở lại, Nhung Bùi!");
+      navigateTo("home");
+      return;
+    }
+
     navigateTo("profile-setup");
   });
 
