@@ -3,13 +3,21 @@
 // ==========================================================================
 
 const state = {
-  screen: "welcome", // 'welcome' | 'phone-login' | 'otp-verify' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
+  screen: "welcome", // 'welcome' | 'phone-login' | 'phone-password' | 'otp-verify' | 'reset-password' | 'profile-setup' | 'voucher-success' | 'home' | 'email-login' | 'support'
   authModal: null, // null | { type: 'apple' | 'oauth', provider, domain }
   pendingAction: null, // null | { label, requireOtp: boolean }
+  otpFlowMode: "login", // 'login' | 'forgot'
   agreedTerms: true,
   termsError: "",
   phone: "",
   phoneError: "",
+  recoveryTarget: "",
+  recoveryError: "",
+  resetPassword: "",
+  resetConfirmPassword: "",
+  showResetPassword: false,
+  showResetConfirmPassword: false,
+  resetErrors: {},
   otpDigits: ["", "", "", "", "", ""],
   otpCountdown: 30,
   otpAttempts: 0,
@@ -351,13 +359,13 @@ function render() {
       <div class="subscreen">
         <div class="subscreen-nav">
           <button class="back-btn" id="btn-back-phone">${ICONS.back}</button>
-          <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.65);">Nhập mã OTP</span>
+          <span style="font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.65);">${state.otpFlowMode === "forgot" ? "Xác minh khôi phục" : "Nhập mã OTP"}</span>
           <span style="width:36px"></span>
         </div>
 
         <h2 class="subscreen-title">Nhập mã xác minh OTP</h2>
         <p class="subscreen-subtitle">
-          Mã gồm 6 chữ số đã được gửi tới số <strong>${state.phone || "0987 768 189"}</strong>.
+          Mã gồm 6 chữ số đã được gửi tới <strong>${state.otpFlowMode === "forgot" ? state.recoveryTarget : state.phone || "0987 768 189"}</strong>.
         </p>
 
         <div class="otp-grid">
@@ -561,6 +569,44 @@ function render() {
           <button id="btn-email-signin" class="gu-btn-primary">Đăng nhập</button>
         </div>
       </div>`;
+  } else if (state.screen === "reset-password") {
+    html += `
+      <div class="subscreen">
+        <div class="subscreen-nav">
+          <button class="back-btn" id="btn-back-otp">${ICONS.back}</button>
+          <span style="font-size:12.5px;font-weight:700;color:#52c41a;">✓ Xác minh thành công</span>
+          <span style="width:36px"></span>
+        </div>
+
+        <h2 class="subscreen-title">Đặt lại mật khẩu mới</h2>
+        <p class="subscreen-subtitle">
+          Tạo mật khẩu mới cho tài khoản <strong>${state.recoveryTarget || state.phone}</strong> để đăng nhập lại.
+        </p>
+
+        <div class="form-stack">
+          <div class="field-group">
+            <label class="field-label">Mật khẩu mới</label>
+            <div class="input-with-action">
+              <input id="reset-pass-input" class="gu-input ${state.resetErrors.password ? "error" : ""}" type="${state.showResetPassword ? "text" : "password"}" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" value="${state.resetPassword}" />
+              <button type="button" class="input-inline-action" id="btn-toggle-reset-pass">${state.showResetPassword ? "Ẩn" : "Hiện"}</button>
+            </div>
+            ${state.resetErrors.password ? `<div class="field-error">${state.resetErrors.password}</div>` : ""}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Xác nhận mật khẩu mới</label>
+            <div class="input-with-action">
+              <input id="reset-confirm-input" class="gu-input ${state.resetErrors.confirmPassword ? "error" : ""}" type="${state.showResetConfirmPassword ? "text" : "password"}" placeholder="Nhập lại mật khẩu mới" value="${state.resetConfirmPassword}" />
+              <button type="button" class="input-inline-action" id="btn-toggle-reset-confirm">${state.showResetConfirmPassword ? "Ẩn" : "Hiện"}</button>
+            </div>
+            ${state.resetErrors.confirmPassword ? `<div class="field-error">${state.resetErrors.confirmPassword}</div>` : ""}
+          </div>
+
+          <button id="btn-reset-submit" class="gu-btn-primary" style="margin-top:6px;">
+            Xác nhận &amp; Đăng nhập
+          </button>
+        </div>
+      </div>`;
   } else if (state.screen === "support") {
     html += `
       <div class="subscreen">
@@ -570,11 +616,12 @@ function render() {
           <span style="width:36px"></span>
         </div>
         <h2 class="subscreen-title">Khôi phục mật khẩu</h2>
-        <p class="subscreen-subtitle">Nhập Email hoặc Số điện thoại đã đăng ký để nhận mã đặt lại mật khẩu.</p>
+        <p class="subscreen-subtitle">Nhập Email hoặc Số điện thoại đã đăng ký để nhận mã OTP đặt lại mật khẩu.</p>
         <div class="form-stack" style="margin-bottom:18px;">
           <div class="field-group">
             <label class="field-label">Email hoặc Số điện thoại</label>
-            <input class="gu-input" placeholder="VD: nhungbui@gmail.com" value="${state.profile.email}" />
+            <input id="recovery-input" class="gu-input ${state.recoveryError ? "error" : ""}" placeholder="VD: 0912 345 678 hoặc email@domain.com" value="${state.recoveryTarget}" />
+            ${state.recoveryError ? `<div class="field-error">${state.recoveryError}</div>` : ""}
           </div>
           <button id="btn-send-recovery" class="gu-btn-primary">Gửi mã khôi phục</button>
         </div>
@@ -739,13 +786,36 @@ function bindEvents() {
   qs("goto-support")?.addEventListener("click", () => navigateTo("support"));
   qs("goto-forgot-from-email")?.addEventListener("click", () => navigateTo("support"));
 
+  qs("recovery-input")?.addEventListener("input", (e) => {
+    state.recoveryTarget = e.target.value;
+    if (state.recoveryError) {
+      state.recoveryError = "";
+      render();
+      qs("recovery-input")?.focus();
+    }
+  });
+
   qs("btn-send-recovery")?.addEventListener("click", () => {
-    showToast("✉️ Đã gửi mã khôi phục về Email/SĐT của bạn!");
+    const val = state.recoveryTarget.trim();
+    if (!val || (!validatePhoneFormat(val) && !validateEmailFormat(val))) {
+      state.recoveryError = "Vui lòng nhập Email hoặc Số điện thoại hợp lệ.";
+      render();
+      return;
+    }
+    state.recoveryError = "";
+    state.otpFlowMode = "forgot";
+    state.otpDigits = ["", "", "", "", "", ""];
+    state.otpAttempts = 0;
+    state.otpError = "";
+    showToast("✉️ Đã gửi mã OTP khôi phục!");
+    navigateTo("otp-verify");
   });
 
   qs("btn-back-welcome")?.addEventListener("click", () => navigateTo("welcome"));
   qs("btn-other-method")?.addEventListener("click", () => navigateTo("welcome"));
-  qs("btn-back-phone")?.addEventListener("click", () => navigateTo("phone-login"));
+  qs("btn-back-phone")?.addEventListener("click", () =>
+    navigateTo(state.otpFlowMode === "forgot" ? "support" : "phone-login")
+  );
   qs("btn-back-otp")?.addEventListener("click", () => navigateTo("otp-verify"));
 
   qs("phone-input")?.addEventListener("input", (e) => {
@@ -763,6 +833,7 @@ function bindEvents() {
       return;
     }
     state.phoneError = "";
+    state.otpFlowMode = "login";
     navigateTo("otp-verify");
   });
 
@@ -811,6 +882,15 @@ function bindEvents() {
 
     state.otpAttempts = 0;
     state.otpError = "";
+
+    if (state.otpFlowMode === "forgot") {
+      state.resetPassword = "";
+      state.resetConfirmPassword = "";
+      state.resetErrors = {};
+      navigateTo("reset-password");
+      return;
+    }
+
     state.session.loggedIn = true;
     state.session.phoneVerified = true;
     state.session.provider = state.session.provider || "OTP SĐT";
@@ -824,6 +904,59 @@ function bindEvents() {
     }
 
     navigateTo("profile-setup");
+  });
+
+  qs("reset-pass-input")?.addEventListener("input", (e) => {
+    state.resetPassword = e.target.value;
+    if (state.resetErrors.password) {
+      state.resetErrors.password = "";
+      render();
+      qs("reset-pass-input")?.focus();
+    }
+  });
+
+  qs("reset-confirm-input")?.addEventListener("input", (e) => {
+    state.resetConfirmPassword = e.target.value;
+    if (state.resetErrors.confirmPassword) {
+      state.resetErrors.confirmPassword = "";
+      render();
+      qs("reset-confirm-input")?.focus();
+    }
+  });
+
+  qs("btn-toggle-reset-pass")?.addEventListener("click", () => {
+    state.showResetPassword = !state.showResetPassword;
+    render();
+  });
+
+  qs("btn-toggle-reset-confirm")?.addEventListener("click", () => {
+    state.showResetConfirmPassword = !state.showResetConfirmPassword;
+    render();
+  });
+
+  qs("btn-reset-submit")?.addEventListener("click", () => {
+    const errs = {};
+    if (state.resetPassword.length < 6) {
+      errs.password = "Mật khẩu mới phải có ít nhất 6 ký tự.";
+    }
+    if (state.resetPassword !== state.resetConfirmPassword) {
+      errs.confirmPassword = "Mật khẩu xác nhận không khớp.";
+    }
+    state.resetErrors = errs;
+    if (Object.keys(errs).length > 0) {
+      render();
+      return;
+    }
+    state.profile.password = state.resetPassword;
+    state.profile.confirmPassword = state.resetConfirmPassword;
+    state.otpFlowMode = "login";
+    state.session.loggedIn = true;
+    state.session.phoneVerified = true;
+    state.session.emailVerified = true;
+    state.session.voucherClaimed = false;
+    state.session.provider = "Khôi phục mật khẩu";
+    showToast("✅ Đặt lại mật khẩu thành công!");
+    navigateTo("home");
   });
 
   qs("btn-toggle-pass")?.addEventListener("click", () => {
